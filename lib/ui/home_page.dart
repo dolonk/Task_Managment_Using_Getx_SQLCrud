@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:task_mnagment/services/theme_services.dart';
 import '../services/notification_services.dart';
 
@@ -17,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     notifyHelper = NotifyHelper();
-    notifyHelper.checkForNotification();
+    notifyHelper.intialize();
   }
 
   @override
@@ -37,8 +39,11 @@ class _HomePageState extends State<HomePage> {
       leading: GestureDetector(
         onTap: () {
           ThemeServices().switchTheme();
-          // NotifyHelper().showNotification();
-          notifyHelper.showNotification();
+          notifyHelper.showNotification(
+              id: 1,
+              title: "Theme Changed",
+              body:
+                  Get.isDarkMode ? "Active Light Theme" : "Active Dark Theme");
         },
         child: Icon(
           Icons.nightlight_rounded,

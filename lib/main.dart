@@ -15,7 +15,6 @@ import 'package:task_mnagment/ui/theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-  NotifyHelper().notificationSettings();
   runApp(const MyApp());
 }
 
