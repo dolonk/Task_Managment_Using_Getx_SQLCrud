@@ -53,29 +53,31 @@ class _HomePageState extends State<HomePage> {
               selectionColor: primaryClr,
               selectedTextColor: Colors.white,
               dateTextStyle: GoogleFonts.lato(
-                textStyle: TextStyle(
+                textStyle: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey),
               ),
               dayTextStyle: GoogleFonts.lato(
-                textStyle: TextStyle(
+                textStyle: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey),
               ),
               monthTextStyle: GoogleFonts.lato(
-                textStyle: TextStyle(
+                textStyle: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey),
               ),
               onDateChange: (date) {
-                _selectedDate = date;
+                setState(() {
+                  _selectedDate = date;
+                });
               },
             ),
           ),
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
           _showTasks()
         ],
       ),
@@ -148,22 +150,41 @@ class _HomePageState extends State<HomePage> {
       return ListView.builder(
         itemCount: _taskController.taskList.length,
         itemBuilder: (context, index) {
-          print(_taskController.taskList.length);
-          return AnimationConfiguration.staggeredList(
-              position: index,
-              child: SlideAnimation(
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        _showBottomSheet(
-                            context, _taskController.taskList[index]);
-                      },
-                      child: TaskTile(_taskController.taskList[index]),
-                    )
-                  ],
-                ),
-              ));
+          Task task = _taskController.taskList[index];
+
+          if (task.repeat == 'Daily') {
+            return AnimationConfiguration.staggeredList(
+                position: index,
+                child: SlideAnimation(
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          _showBottomSheet(context, task);
+                        },
+                        child: TaskTile(_taskController.taskList[index]),
+                      )
+                    ],
+                  ),
+                ));
+          } else if (task.date == DateFormat.yMd().format(_selectedDate)) {
+            return AnimationConfiguration.staggeredList(
+                position: index,
+                child: SlideAnimation(
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          _showBottomSheet(context, task);
+                        },
+                        child: TaskTile(_taskController.taskList[index]),
+                      )
+                    ],
+                  ),
+                ));
+          } else {
+            return Container();
+          }
         },
       );
     }));
