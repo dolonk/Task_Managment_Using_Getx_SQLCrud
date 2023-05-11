@@ -1,5 +1,3 @@
-
-
 class Task {
   int? id;
   String? title;
@@ -12,8 +10,17 @@ class Task {
   int? remind;
   String? repeat;
 
-  Task({this.id, this.title, this.note, this.isCompleted, this.date,
-      this.startTime, this.endTime, this.color, this.remind, this.repeat});
+  Task(
+      {this.id,
+      this.title,
+      this.note,
+      this.isCompleted,
+      this.date,
+      this.startTime,
+      this.endTime,
+      this.color,
+      this.remind,
+      this.repeat});
 
   Task.fromJson(Map<String, dynamic> json) {
     id = json['id'];
