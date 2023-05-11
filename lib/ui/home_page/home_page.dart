@@ -6,11 +6,12 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:task_mnagment/controllers/task_controller.dart';
 import 'package:task_mnagment/services/theme_services.dart';
-import 'package:task_mnagment/ui/home_page/widget/app_taskbar.dart';
 import 'package:task_mnagment/ui/theme.dart';
 import 'package:task_mnagment/ui/widget/button.dart';
 import '../../services/notification_services.dart';
+import '../add_task_page/add_task_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -21,6 +22,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime _selectedDate = DateTime.now();
+  final _taskController = Get.put(TaskController());
   var notifyHelper;
 
   @override
@@ -37,7 +39,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: context.theme.backgroundColor,
       body: Column(
         children: [
-          AppTaskBar(),
+          _appTaskBar(),
           Container(
             margin: const EdgeInsets.only(top: 15, left: 15, right: 15),
             child: DatePicker(
@@ -65,12 +67,13 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.w600,
                     color: Colors.grey),
               ),
-              onDateChange: (date){
+              onDateChange: (date) {
                 _selectedDate = date;
               },
             ),
           ),
-
+          SizedBox(height: 15),
+          _showTasks()
         ],
       ),
     );
@@ -106,4 +109,55 @@ class _HomePageState extends State<HomePage> {
       ],
     );
   }
+
+  _appTaskBar(){
+    return Container(
+      margin: const EdgeInsets.only(left: 15, right: 15, top: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(DateFormat.yMMMMd().format(DateTime.now()),
+                    style: subHeadingStyle),
+                Text(
+                  "Today",
+                  style: headingStyle,
+                )
+              ],
+            ),
+          ),
+          MyButton(
+              label: "+ Add Task",
+              onTap: ()  async {
+                await Get.to(() => AddTaskPage());
+                _taskController.getTasks();
+              })
+        ],
+      ),
+    );
+  }
+
+  _showTasks() {
+    return Expanded(
+        child: Obx(() {
+      return ListView.builder(
+        itemCount: _taskController.taskList.length,
+          itemBuilder: (context, index) {
+          print(_taskController.taskList.length);
+            return Container(
+              width: 100,
+              height: 50,
+              color: Colors.green,
+              margin: EdgeInsets.only(bottom: 10),
+              child: Text(
+                  _taskController.taskList[index].title.toString()
+              ),
+            );
+          },);
+    }));
+  }
+
 }

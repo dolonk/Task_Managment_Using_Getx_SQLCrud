@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:task_mnagment/controllers/task_controller.dart';
+import 'package:task_mnagment/models/task_model.dart';
 import 'package:task_mnagment/ui/theme.dart';
 import 'package:task_mnagment/ui/widget/button.dart';
 import 'package:task_mnagment/ui/widget/inputfield.dart';
@@ -14,6 +16,7 @@ class AddTaskPage extends StatefulWidget {
 }
 
 class _AddTaskPageState extends State<AddTaskPage> {
+  final TaskController _taskController = Get.put(TaskController());
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
@@ -36,8 +39,16 @@ class _AddTaskPageState extends State<AddTaskPage> {
           child: Column(
             children: [
               Text('Add Task', style: headingStyle),
-              MyInputField(tittle: 'Tittle', hint: 'Enter Your Tittle', controller: _titleController,),
-              MyInputField(tittle: 'Note', hint: 'Enter Your Note',controller: _noteController,),
+              MyInputField(
+                tittle: 'Tittle',
+                hint: 'Enter Your Tittle',
+                controller: _titleController,
+              ),
+              MyInputField(
+                tittle: 'Note',
+                hint: 'Enter Your Note',
+                controller: _noteController,
+              ),
               MyInputField(
                 tittle: 'Date',
                 hint: DateFormat.yMEd().format(_selectedDate),
@@ -55,33 +66,33 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 children: [
                   Expanded(
                       child: MyInputField(
-                        tittle: 'Start Date',
-                        hint: _startTime,
-                        widget: IconButton(
-                          onPressed: () {
-                            _getTimeFromUser(isStarTime: true);
-                          },
-                          icon: Icon(
-                            Icons.access_time_rounded,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      )),
+                    tittle: 'Start Date',
+                    hint: _startTime,
+                    widget: IconButton(
+                      onPressed: () {
+                        _getTimeFromUser(isStarTime: true);
+                      },
+                      icon: Icon(
+                        Icons.access_time_rounded,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  )),
                   SizedBox(width: 12),
                   Expanded(
                       child: MyInputField(
-                        tittle: 'End Date',
-                        hint: _endTime,
-                        widget: IconButton(
-                          onPressed: () {
-                            _getTimeFromUser(isStarTime: false);
-                          },
-                          icon: Icon(
-                            Icons.access_time_rounded,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ))
+                    tittle: 'End Date',
+                    hint: _endTime,
+                    widget: IconButton(
+                      onPressed: () {
+                        _getTimeFromUser(isStarTime: false);
+                      },
+                      icon: Icon(
+                        Icons.access_time_rounded,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ))
                 ],
               ),
               MyInputField(
@@ -94,7 +105,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   style: subTittleStyle,
                   underline: Container(height: 0),
                   items: remindList.map<DropdownMenuItem<String>>(
-                        (int value) {
+                    (int value) {
                       return DropdownMenuItem<String>(
                         value: value.toString(),
                         child: Text(value.toString()),
@@ -118,7 +129,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                   style: subTittleStyle,
                   underline: Container(height: 0),
                   items: repeatList.map<DropdownMenuItem<String>>(
-                        (String value) {
+                    (String value) {
                       return DropdownMenuItem<String>(
                         value: value,
                         child: Text(
@@ -141,7 +152,10 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _colorPallet(),
-                  MyButton(label: 'Created Task', onTap: () => _validateDate(),)
+                  MyButton(
+                    label: 'Created Task',
+                    onTap: () => _validateDate(),
+                  )
                 ],
               )
             ],
@@ -214,7 +228,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
         initialEntryMode: TimePickerEntryMode.input,
         context: context,
         initialTime: TimeOfDay(
-          // _startTime --> 10.30 AM
+            // _startTime --> 10.30 AM
             hour: int.parse(_startTime.split(":")[0]),
             minute: int.parse(_startTime.split(":")[1].split(" ")[0])));
   }
@@ -227,39 +241,61 @@ class _AddTaskPageState extends State<AddTaskPage> {
         SizedBox(height: 8.0),
         Wrap(
             children: List<Widget>.generate(3, (int index) {
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedColor = index;
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: CircleAvatar(
-                    radius: 14,
-                    backgroundColor: index == 0 ? primaryClr : index == 1
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedColor = index;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: CircleAvatar(
+                radius: 14,
+                backgroundColor: index == 0
+                    ? primaryClr
+                    : index == 1
                         ? pinkClr
                         : yellowClr,
-                    child: _selectedColor == index ? Icon(
-                      Icons.done, color: Colors.white, size: 16,) : Container(),
-                  ),
-                ),
-              );
-            }))
+                child: _selectedColor == index
+                    ? Icon(
+                        Icons.done,
+                        color: Colors.white,
+                        size: 16,
+                      )
+                    : Container(),
+              ),
+            ),
+          );
+        }))
       ],
     );
   }
 
   _validateDate() {
     if (_titleController.text.isNotEmpty && _noteController.text.isNotEmpty) {
-      // add to database
+      _addTaskToDb();
       Get.back();
     } else if (_titleController.text.isEmpty || _noteController.text.isEmpty) {
       Get.snackbar("Required", "All fields are required !",
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: pinkClr,
-          icon: const Icon(Icons.warning_amber_rounded)
-      );
+          icon: const Icon(Icons.warning_amber_rounded));
     }
+  }
+
+  _addTaskToDb() async {
+    int value = await _taskController.addTask(
+        task: Task(
+      title: _titleController.text,
+      note: _noteController.text,
+      date: DateFormat.yMd().format(_selectedDate),
+      startTime: _startTime,
+      endTime: _endTime,
+      remind: _selectedRemind,
+      repeat: _selectedRepeat,
+      color: _selectedColor,
+      isCompleted: 0,
+    ));
+    print("My id is " + "$value");
   }
 }
