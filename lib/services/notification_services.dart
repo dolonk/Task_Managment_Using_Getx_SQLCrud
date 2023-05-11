@@ -3,40 +3,36 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+import 'package:task_mnagment/models/task_model.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/data/latest.dart';
 import 'package:get/get.dart';
 
-
-var dtime;
 class NotifyHelper {
-
   final _localNotificationservice = FlutterLocalNotificationsPlugin();
 
   // For Notification Set
   Future<void> notificationSettings() async {
-
     initializeTimeZones();
+    _configureLocalTimezone();
 
     AndroidInitializationSettings androidSettings =
         const AndroidInitializationSettings("@mipmap/ic_launcher");
 
-    DarwinInitializationSettings iosSettings =
-    DarwinInitializationSettings(
+    DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
         requestSoundPermission: false,
         requestBadgePermission: false,
         requestAlertPermission: false,
-        onDidReceiveLocalNotification: onDidReceiveLocalNotification
-    );
+        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
 
     InitializationSettings initializationSettings =
         InitializationSettings(android: androidSettings, iOS: iosSettings);
 
     //background state
-     await _localNotificationservice.initialize(initializationSettings);
-
+    await _localNotificationservice.initialize(initializationSettings);
   }
-
 
   // For check Notification permission
   void checkForNotification() async {
@@ -57,7 +53,7 @@ class NotifyHelper {
 
   Future<NotificationDetails> _showNotification() async {
     const AndroidNotificationDetails androidNotificationDetails =
-    AndroidNotificationDetails(
+        AndroidNotificationDetails(
       '1',
       'ToDO app',
       channelDescription: 'description',
@@ -65,7 +61,8 @@ class NotifyHelper {
       priority: Priority.max,
     );
 
-    DarwinNotificationDetails iosNotificationDetails = const DarwinNotificationDetails(
+    DarwinNotificationDetails iosNotificationDetails =
+        const DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
@@ -75,7 +72,6 @@ class NotifyHelper {
       android: androidNotificationDetails,
       iOS: iosNotificationDetails,
     );
-
   }
 
   Future onDidReceiveLocalNotification(
@@ -89,37 +85,40 @@ class NotifyHelper {
     await _localNotificationservice.show(id, title, body, details);
   }
 
-  /*Future<void> scheduleNotification() async {
-    final moonLanding = DateTime.parse(dtime);
-    final details = await _showNotification();
-    // ignore: deprecated_member_use
-    await _localNotificationservice.showDailyAtTime(
-      0,
-      'Schedule Notification',
-      'Thank you',
-      Time(
-        moonLanding.hour,
-        moonLanding.minute,
-        moonLanding.second,
-      ),
-      details,
-    );
-  }*/
-
-  scheduledNotification() async {
+  scheduledNotification(int hour, int minutes, Task task) async {
     await _localNotificationservice.zonedSchedule(
-        0,
-        'scheduled title',
-        'theme changes 5 seconds ago',
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)),
+        task.id!,
+        task.title,
+        task.note,
+        _convertTime(hour, minutes),
+        //tz.TZDateTime.now(tz.local).add(const Duration(seconds: newTime)),
         const NotificationDetails(
-            android: AndroidNotificationDetails('your channel id',
-                'your channel name',
-              importance: Importance.max,
-              priority: Priority.max,)),
+            android: AndroidNotificationDetails(
+          'your channel id',
+          'your channel name',
+          importance: Importance.max,
+          priority: Priority.max,
+        )),
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime);
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time);
   }
 
+  tz.TZDateTime _convertTime(int hour, int minutes) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduleDate =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minutes);
+
+    if (scheduleDate.isBefore(now)) {
+      scheduleDate = scheduleDate.add(const Duration(days: 1));
+    }
+    return scheduleDate;
+  }
+
+  Future<void> _configureLocalTimezone() async {
+    tz.initializeTimeZones();
+    final String timeZone = await FlutterNativeTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZone));
+  }
 }
